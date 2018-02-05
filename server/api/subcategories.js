@@ -27,7 +27,7 @@ module.exports = function(apiRouter,s3,randomString,userupload){
 			if(err) res.send(err);
 
 			res.json({ message: 'Post deleted!' });
-		})
+		});
 	});
         
 
@@ -46,7 +46,6 @@ module.exports = function(apiRouter,s3,randomString,userupload){
         console.log(req.body);
         
         Subcategory.findById({'_id': req.body.id}, function(err, user) {
-            console.log("harmannnnn");
             
             if (err){
                 res.send(err);
@@ -67,38 +66,55 @@ module.exports = function(apiRouter,s3,randomString,userupload){
     /* Rubal api's */
     /* Add subcategories */
     apiRouter.post('/addsubcategories', function(req, res){
-          // console.log(req.body);
                
                         var subcategories = new Subcategory();
-
+                        // console.log(typeof(req.body.end_time));
                         subcategories.category_id = req.body.category_id;
                         subcategories.category = req.body.category;
                         subcategories.category_name = req.body.category_name;
-                        subcategories.distance = req.body.distance;
-                        subcategories.address = req.body.address;
-                        subcategories.latitude = req.body.latitude;
-                        subcategories.longitude = req.body.longitude;
+                        subcategories.address = req.body.address;  
+                        subcategories.start_date = req.body.start_date;  
+                        subcategories.end_date = req.body.end_date;  
+                        subcategories.start_time = Number(req.body.start_time);  
+                        subcategories.end_time = Number(req.body.end_time);  
+                        subcategories.loc =  { type: "Point", coordinates: [req.body.longitude, req.body.latitude]};  
                         var str = req.body.type;
-
                         var arr = str.split(",");
-
+                        var seatstr = req.body.seat;
+                        var seatarr = seatstr.split(",");
+                                          
                         arr.forEach(function(element){
-                            //console.log(element);
                             subcategories.dishes.push({'type':element});
+                        });
+                        
+                        seatarr.forEach(function(element){
+                            subcategories.seats.push({'seat':element});
                         });
 				
 			subcategories.save(function(err, subcategories){
 			if(err) res.send(err);
 			res.send({error : 0 , SubCategory : subcategories , message: 'Subcategory Added!'});
-
-		});
-		
+		});		
 	});
     
     /* Get list of subcategories on the basic of id's */
     apiRouter.post('/subcatbyid', function(req, res){
             console.log(req.body.category_id);
-		Subcategory.find({category_id : req.body.category_id}, function(err, post){
+		Subcategory.aggregate([
+                    {
+                        $lookup:{  
+                            localField: "_id",   
+                            from: "coupons",         
+                            foreignField: "subcategoryid",  
+                            as: "coupon"  
+                        }
+                    },
+                    {
+                        $match:{
+                        category_id : req.body.category_id
+                        }
+                    }
+                ], function(err, post){
                     console.log(post);
 			if (err) res.send(err);
 
@@ -108,7 +124,21 @@ module.exports = function(apiRouter,s3,randomString,userupload){
 	
 	apiRouter.post('/subcatbyaddress', function(req, res){
         
-		 Subcategory.find( { address: { '$regex': '.*' + req.body.address+ '.*', $options: 'i' } } , function(err, post){
+		 Subcategory.aggregate( [ 
+                     {
+                        $lookup:{  
+                            localField: "_id",   
+                            from: "coupons",         
+                            foreignField: "subcategoryid",  
+                            as: "coupon"  
+                        }
+                    },
+                    {
+                        $match:{
+                            address: { '$regex': '.*' + req.body.address+ '.*', $options: 'i' }
+                        }
+                    }
+                 ] , function(err, post){
             console.log(post);       
 			if (err) res.send(err);
 
@@ -118,28 +148,38 @@ module.exports = function(apiRouter,s3,randomString,userupload){
 	
 	apiRouter.post('/subcatbysearchvalues', function(req, res){
         
-            var finalarray =[
-                                {  
-			category:   { 
-                                            '$regex': '.*' + req.body.category + '.*', $options: 'i' 
-					}                          
-				},
-                                {  
-			date:   { 
-                                            '$regex': '.*' + req.body.date + '.*', $options: 'i' 
-					}                          
-				},
-			{  
-			time:   { 
-                                            '$regex': '.*' + req.body.time + '.*', $options: 'i' 
-					}                          
-				},	
-			{ 
-			seat: 	{ 
-                                            '$regex': '.*' + req.body.seat + '.*', $options: 'i'
-					}                          
-			}] ;
-                    console.log( req.body.address);
+            var finalarray =[] ;
+                    if( req.body.seats!=""){
+                        finalarray.push({  
+                            seats: {
+                                $elemMatch: { seat: req.body.seats }
+                            }                        
+                    });
+                        
+                    }
+                    
+                    if( req.body.time!=""){
+                        finalarray.push({  
+                            start_time: {"$lte": Number(req.body.time) } , 
+                            end_time: {"$gte": Number(req.body.time) }
+			});
+                    }
+                    
+                    if( req.body.date!=""){
+                        finalarray.push({  
+                            start_date: {"$lte": new Date(req.body.date) } , 
+                            end_date: {"$gte": new Date(req.body.date) }                       
+			});
+                    }
+                    
+                    if( req.body.category!=""){
+                        finalarray.push({  
+                            category: { 
+                                    '$regex': '.*' + req.body.category + '.*', $options: 'i' 
+                                }                          
+			});
+                    }
+                    
                     if( req.body.address!=""){
                         finalarray.push({  
                             address: { 
@@ -147,12 +187,164 @@ module.exports = function(apiRouter,s3,randomString,userupload){
                                 }                          
 			});
                     }
-	
-		Subcategory.find( {  "$or": finalarray
-		 } , function(err, post){
-                        console.log(post);       
-			if (err) res.send(err);
+                    
+                    
+                    
+		Subcategory.aggregate( 
+                        {
+                            "$lookup":{  
+                                "localField": "_id",   
+                                "from": "coupons",         
+                                "foreignField": "subcategoryid",  
+                                "as": "coupon"  
+                            }
+                        },
+                        {"$match":{  "$and": finalarray
+		 } }, function(err, post){       
+			if (err){ res.send(err)}
+                        else if(req.body == ""){
+                            res.send({error : 1 , msg : "Please select atleast one creteria."});  
+                        }else{
 			res.json({error : 0 , subcatlist : post});
+                    }
 		});
 	});
+        
+       
+        apiRouter.post('/sortbydistance', function(req, res) {  
+            
+            if(req.body.param=="distance"){
+                    var queryx = [        
+                    {   
+                        "$geoNear": {
+                            "near": { 
+                                "type": "Point", 
+                                "coordinates": [Number(req.body.longitude),Number(req.body.latitude)]
+                            },
+                            "distanceField": "distance",
+                            "maxDistance": Number(req.body.distance), 
+                            "minDistance": 0,
+                            "spherical": true
+                        }
+                    },
+                    {   
+                        "$lookup": {  
+                            "localField": "_id",   
+                            "from": "coupons",         
+                            "foreignField": "subcategoryid",  
+                            "as": "coupon"  
+                        }           
+                    }];
+                   
+            }else if(req.body.param=="endvalidity"){
+                    var queryx = [
+                            {   
+                                "$lookup": {  
+                                    "localField": "_id",   
+                                    "from": "coupons",         
+                                    "foreignField": "subcategoryid", 
+                                    "as": "data"
+                                }
+                            }, 
+                            {
+                                "$unwind":"$data"
+                            },    
+                            {
+                                "$match": {
+                                    "data.enddate": {"$gte": new Date(),"$lte": new Date(req.body.date)}
+                                }
+                            }
+                    ];    
+            }else{
+                    var queryx = [        
+                        {   
+                            "$geoNear": {
+                                "near": { 
+                                    "type": "Point", 
+                                    "coordinates": [Number(req.body.longitude),Number(req.body.latitude)]
+                                },
+                                "distanceField": "distance",
+                                "maxDistance": Number(req.body.distance), 
+                                "minDistance": 0,
+                                "spherical": true
+                            }
+                        },
+                        {   
+                            "$lookup": {  
+                                    "localField": "_id",   
+                                    "from": "coupons",         
+                                    "foreignField": "subcategoryid", 
+                                    "as": "data"
+                            }         
+                        },
+                        {
+                                "$unwind":"$data"
+                        },
+                        {   
+                            "$match": {
+                                    "data.enddate": {"$gte": new Date(),"$lte": new Date(req.body.date)}
+                                }
+                        }] ;
+            }
+            
+            if( req.body.time!=""){
+                        queryx.push(
+                            {
+                                "$match": {  
+                                        start_time: {"$lte": Number(req.body.time) } , 
+                                        end_time: {"$gte": Number(req.body.time) }
+                                }
+			});
+                    }
+                    
+                    if( req.body.date!=""){
+                        queryx.push({ 
+                            "$match": {
+                            start_date: {"$lte": new Date(req.body.date) } , 
+                            end_date: {"$gte": new Date(req.body.date) }                       
+                        }});
+                    }
+                    
+                    if( req.body.category!=""){
+                        queryx.push({ 
+                            "$match": {
+                            category: { 
+                                    '$regex': '.*' + req.body.category + '.*', $options: 'i' 
+                                }                          
+			}});
+                    }
+                    
+                    if( req.body.address!=""){
+                        queryx.push({
+                            "$match": {
+                            address: { 
+                                    '$regex': '.*' + req.body.address + '.*', $options: 'i' 
+                                }                          
+			}});
+                    }
+                    
+                    if( req.body.seats!=""){
+                        queryx.push({ 
+                            "$match": {
+                            seats: {
+                                $elemMatch: { seat: req.body.seats }
+                            }                        
+                    }});
+                        
+                    }
+                    
+            
+            Subcategory.aggregate(queryx,
+                    function(err, subcategory) {
+                        if (err) {   
+                            return res.send({ 'data': err, 'error': 1 });   
+                        }   
+                        if (subcategory.length != 0) {   
+                            return res.send({ 'data': subcategory, 'error':0}); 
+                        } else {   
+                            return res.send({'error':2, 'msg': 'No data found' });   
+                        } 
+                    }); 
+        });
+          
 };

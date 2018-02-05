@@ -10,7 +10,7 @@ var User = new mongoose.Schema({
     image:{type:String}, 
     name:{type:String}, 
     surname:{type:String}, 
-    phone:{type:Number},
+    phone:{type:String},
     role:{type:String,required:'{PATH} is required!'}, 
     resetPasswordToken: { type: String},
     resetPasswordExpires: { type: String}, 
@@ -45,12 +45,6 @@ var User = new mongoose.Schema({
 
 
 User.plugin(passportLocalMongoose, { usernameField: 'email' });
-//User.methods.comparePassword = function(old_password, hash, salt , user){
-//    console.log("harman");
-//    console.log(hash);
-//    console.log(salt);
-//    console.log(old_password);
-//}
 User.pre('save', function(next){
   now = new Date();
   this.updated_at = now;

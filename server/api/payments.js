@@ -196,21 +196,47 @@ module.exports = function(apiRouter,gateway){
 		})
 		
 	});
-	//category/categorybyid
-   
-//        apiRouter.post('/category/categorybyid', function(req, res) {
-//        console.log(req.body);
-//        Category.findById({'_id': req.body.path}, function(err, user) {
-//            if (err){
-////                res.send(err);
-//                 res.json({"message" : "Unable to fetch details","error" : 1 });
-//            }else{
-//            res.json({"message" : "Result Fetched Successfully","error" : 0 ,"data" : user});
-//        }
-//        });
-//    });
-		
 	
+        /* Rubal api's */
+        /* Stripe payment gateway */
+		
+	apiRouter.post('/payment/stripe', function(req, res){
+            console.log(req.body);
+          
+            var stripe = require("stripe")(
+               "sk_test_mM3MShgihhupGWv8sVyPIdO5"
+            );
+    
+            stripe.charges.create({
+              amount: req.body.price,
+              currency: "eur",
+              source: req.body.token
+            }, function(err, charge) {
+                if(err) {
+                    res.send({"error" : 1, "msg" : err});
+                }else{
+                    res.json({"error":0,"message":'Payment Successful!'});
+                }
+            });
+	
+	});
+        
+        apiRouter.post('/payment/stripedataretrieve', function(req, res){
+            //console.log(req.body);
+            var stripe = require("stripe")(
+               "sk_test_mM3MShgihhupGWv8sVyPIdO5"
+            );
+    
+            stripe.charges.retrieve(req.body.id,function(err, charge) {
+                // asynchronously called
+                if(err) {
+                    res.send({"error" : 1, "msg" : err});
+                }else{
+                    res.json({"error":0,"data":charge});
+                }
+            });
+		
+	});
 
 
 };

@@ -61,7 +61,7 @@
     "session-storage": "^1.0.1",
     "simple-random": "^1.0.3",
     "sitemap": "^1.13.0",
-    "stripe": "^5.0.0",
+    "stripe": "^5.4.0",
     "textangular": "^1.5.16",
     "twilio": "^3.10.1",
     "vue-html-editor": "^0.2.1"

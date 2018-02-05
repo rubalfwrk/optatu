@@ -222,10 +222,12 @@ app.controller('UserCtrl', function($scope, Category, Users, $rootScope) {
                     if (res) {
                         //console.log(res.message);
                         $rootScope.message = res.message;
-                        window.location = '/login';
+                        alert('Your password has been reset sucessfully');
+                         window.close();
                     } else {
                         $rootScope.message = res.message;
-                        window.location = '/login';
+                        alert('Something went wrong! Please check the password.');
+                       window.close();
                     }
                 });
             }

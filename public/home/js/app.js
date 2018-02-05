@@ -147,6 +147,7 @@ app.config(function($stateProvider, $urlRouterProvider) {
                 templateUrl: "/home/templates/news.html",
                 controller: 'NewsCtrl'
             })
+            
             .state('news_detail', {
                 url: "/news_detail/*",
                 templateUrl: "/home/templates/news_detail.html",

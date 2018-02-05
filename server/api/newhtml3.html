@@ -1,0 +1,32 @@
+apiRouter.post('/order/getorders', function(req, res) {   
+Order.aggregate([
+    {     
+        "$lookup": {     
+        "localField": "chef_id",         
+        "from": "users",   
+        "foreignField": "_id",  
+        "as": "user_data"    
+        }      
+    },    
+    {        
+        "$match": {     
+            "$and": [       
+                    { "order_status": parseInt(req.body.order_status) }, 
+                    { "user_id": mongoose.Types.ObjectId(req.body.app_user_id) }   
+            ]        
+        }        
+    }      
+],
+function(err, gettt) {   
+if (err) {
+res.json({ 'message': "Error", 'status': false, 'data': err });     
+return false;    
+} else {     
+if (gettt.length != 0) {     
+res.json({ 'message': "Orders Data", 'status': true, 'data': gettt });  
+} else {            
+res.json({ 'message': "No Orders for this status" + ' ' + req.body.order_status, 'status': false, 'data': gettt }); 
+}   
+}  
+}); 
+});

@@ -42,7 +42,16 @@ app.controller('allapiCtr', function($scope,$rootScope) {
 		response.push({'descripiton':'Get seats list','url':base_url+'/seatlist'});
 		
 		response.push({'descripiton':'Delete seats','url':base_url+'/deleteseat','parameter':'id:5a619885f348b010dc39763f'});
+                
+                response.push({'descripiton':'Sort api','url':base_url+'/sortbydistance','parameter':'param:distance/ /endvalidity/ latitude:34.221 longitude:35.33233 distance:222 date:2018-02-01'});
+
+                response.push({'descripiton':'Search Sub categories by using search form api','url':base_url+'/subcatbysearchvalues','parameter':'address: category:barbeque time: date: seat:'});
 		
+                response.push({'descripiton':'Stripe payment','url':base_url+'/payment/stripe','parameter':'price:20 token:ch_1Bs4PRCHppIr50QiE84k79q9'});   
+                
+                response.push({'descripiton':'Stripe payment retrieve','url':base_url+'/payment/stripedataretrieve','parameter':'id:ch_1Bs4PRCHppIr50QiE84k79q9'});
+
+
     $scope.base_url = base_url;
     $scope.data=response;
 });

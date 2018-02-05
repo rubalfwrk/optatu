@@ -4,13 +4,13 @@
  * and open the template in the editor.
  */
 
- var User = require('../models/user');
- var uuid = require('node-uuid');
- var fs = require('fs');
+var User = require('../models/user');
+var uuid = require('node-uuid');
+var fs = require('fs');
  
- var http = require('http');
- var request = require('request');
- 
+var http = require('http');
+var request = require('request');
+const uuidv4 = require('uuid/v4');
 var nodemailer = require("nodemailer");
 var smtpTransport = require("nodemailer-smtp-transport");
 var smtpTransport = nodemailer.createTransport(smtpTransport({
@@ -23,7 +23,8 @@ var smtpTransport = nodemailer.createTransport(smtpTransport({
     }
     }
 ));
- function makeid() {
+
+function makeid() {
   var text = "";
   var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -809,6 +810,7 @@ request(options, callback);
 apiRouter.post('/users/register', function(req, res) { 
     console.log(res); 
     var img = req.body.image;
+    //var key = uuidv4();
     buf = new Buffer(img.replace(/^data:image\/\w+;base64,/, ""),'base64');
     console.log(buf);
     var data = {
@@ -885,7 +887,6 @@ apiRouter.post('/users/registervendor', function(req, res) {
         postalcode:req.body.postalcode, 
         province:req.body.province,
         city:req.body.city,
-        //nation:req.body.nation,
         telephone:req.body.telephone,
         email:req.body.email,
         companyname:req.body.companyname,
@@ -911,21 +912,50 @@ apiRouter.post('/users/registervendor', function(req, res) {
 });
 });
 
-
+apiRouter.post('/changePassword', function(req, res, next) { 
+    passport.authenticate('local', function(err, user, info) {   
+        if (err) {    
+            return next(err);
+        }
+      if (!user) {    
+          console.log(info.message); 
+          if (info.message == 'Incorrect password') {      
+              return res.json({ error: 1, status: false, message: 'Incorrect old password!!' });  
+          } else if (info.message == 'Incorrect email') {               
+              return res.json({  error: 1, status: false, message: 'Email id is Incorrect!!' });    
+          }       
+      }          
+      req.login(user, function(err) {       
+          if (err) {   
+              return next(err);    
+          }        
+          user.setPassword(req.body.newpassword, function() {  
+              user.save(function(err) {             
+                  return res.json({ error: 0, 'message': "Your password has been successfully change!!!", 'status': true, });     
+              });  
+          });     
+      });    
+  })(req, res, next); 
+  });
+  
 apiRouter.post('/users/edituser', function(req, res) {
-    console.log(req.body);
+//    console.log(req.body);
     User.findById({'_id': req.body.id}, function(err, user) {
-            var img = req.body.image;
-            buf = new Buffer(img.replace(/^data:image\/\w+;base64,/, ""),'base64');
-            console.log(buf);
-            var data = {
-              Body: buf,
-              ContentEncoding: 'base64',
-              ContentType: 'image/jpeg'
-            };
+        
+        if(req.body.image){
+        var img = req.body.image;
+       // var key = uuidv4();
+        buf = new Buffer(img.replace(/^data:image\/\w+;base64,/, ""),'base64');
+        //console.log(buf);
+        var data = {
+          Body: buf,
+          ContentEncoding: 'base64',
+          ContentType: 'image/jpeg'
+        };
         s3.putObject(data, function(err, data){
     
         var pro_pic = "https://s3.us-east-2.amazonaws.com/optatu/"+randomString+".jpg";
+        //console.log(pro_pic);
         if (err){
             res.send(err);
         }else{
@@ -943,27 +973,21 @@ apiRouter.post('/users/edituser', function(req, res) {
             });
         }
     }); 
+    }else{
+       user.name = req.body.name;
+            user.surname = req.body.surname;   
+            user.phone = req.body.phone;
+            user.email = req.body.email;
+            user.save(function(err) {
+                if (err){
+                    res.send({"error" : 1,"message" : "Unable to edit user"});
+                }else{
+                    res.json({"error":0,"message":'Your info has been updated successfully','data':user});
+                }
+            }); 
+    }
 });
-
-
 });
-
-apiRouter.post('/changePassword', function(req, res){ 
-    passport.authenticate('local')(req, res, function() {
-        User.findOne({"email":req.body.email }, function (err, user) {  
-            if(err) { res.send(err);     res.json({"error" : 1 ,"message" : "Email has not been found!"}); 
-                return false;  
-            } else{   
-                user.setPassword(req.body.newpassword,function(err,user) {   
-                    user.save();  
-                    res.json({"message" : "password changed" ,"error" : 0});
-                    if(err) {     
-                        res.json({"error" : 1 ,"message" : "Password can not be changed!"});     
-                    }    });
-            }  }); 
-    });
-});
-
 
 
 apiRouter.post('/forgetpassword', function(req, res) {
@@ -980,8 +1004,17 @@ apiRouter.post('/forgetpassword', function(req, res) {
             from: 'rakeshmoyal@avainfotech.com',
             to: user.email,
             subject: 'Forgot Password',
-            html: "Hello " + user.email + ",<br> Please Click on the link to change password.<br><a href=" + link + ">Click here to Change Password</a>"
-             };
+            html: "Hello " + user.email + ",<br> Please Click on the link to reset password.<br><a href=" + link + ">Click here to Reset Password</a>"
+//            html: '' +
+//                    '' +
+//                    '' +
+//                    '' +
+//                    '' +
+//                    '' +
+//                    '' +
+//                    'Hi ' + user.email + '' + '<br> Did you just make a request to reset your password ?  If yes? Go ahead.' + '<br> Reset my password' +
+//                    '<br> If the button does not work, copy and paste the following link ' + link + ' in your browser.' + ' ' 
+            };
             smtpTransport.sendMail(mailOptions, function(error, info) {
             if (error) {
             console.log(error);

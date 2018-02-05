@@ -17,9 +17,11 @@ var express = require('express'),
         Season = require('./models/season'),
         Likedislike = require('./models/likedislike'),
         Subcategory = require('./models/subcategory'),
+        Staticpage = require('./models/staticpage'),
         Episode = require('./models/episode'),
         Serial = require('./models/serial'),
         Category = require('./models/category'),
+        Coupon = require('./models/coupon'),
 	Seat = require('./models/seat'),
 	Managercategory = require('./models/managercategory'),
         nodemailer = require('nodemailer'),
@@ -109,11 +111,13 @@ module.exports = function(app, passport) {
     require('./api/seasons')(apiRouter,s3, randomString,userupload);
     require('./api/episodes')(apiRouter,s3, randomString,userupload);
     require('./api/categories')(apiRouter,s3, randomString,userupload);
+    require('./api/coupons')(apiRouter,s3, randomString,userupload);
     require('./api/seats')(apiRouter,s3, randomString,userupload);
     require('./api/managercategories')(apiRouter,s3, randomString,userupload);
     require('./api/subcategories')(apiRouter,s3, randomString,userupload);
+    require('./api/staticpages')(apiRouter,s3, randomString,userupload);
     require('./api/likedislikes')(apiRouter,s3, randomString,userupload);
-//        require('./api/adminusers')(apiRouter, passport,transporter,s3,randomString);
+    //require('./api/adminusers')(apiRouter, passport,transporter,s3,randomString);
     require('./api/users')(apiRouter, passport, transporter, s3, randomString, userupload);
     // home route
     router.get('/', function(req, res) {
@@ -183,6 +187,7 @@ module.exports = function(app, passport) {
             res.redirect('/login');
         }    
     });
+    
     router.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
@@ -427,6 +432,10 @@ module.exports = function(app, passport) {
 
     router.get('/admin/register', function(req, res) {
         res.render('admin/register');
+    });
+    
+    router.get('/changed', function(req, res) {
+        res.render('home/changed');
     });
 
     router.get('/admin/dashboard', isAdmin, function(req, res) {
