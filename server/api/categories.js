@@ -72,7 +72,6 @@ module.exports = function(apiRouter,s3,randomString,userupload){
 	/* Get all categories */
 	apiRouter.get('/categorylist', function(req, res){
 		Category.find({}, function(err, posts){
-        console.log(posts);
 			if (err) res.send(err);
 			res.json({error : 0 , data : posts});
 		}).sort({ created_at : -1 });;
@@ -90,4 +89,67 @@ module.exports = function(apiRouter,s3,randomString,userupload){
 			res.json({ message: 'Post deleted!' });
 		})
 	});
+        
+    apiRouter.post('/uploadimageicon',userupload.array('file',3), function(req, res, next) {
+            res.send(req.files);
+        });    
+    
+    apiRouter.post('/uploadimage',userupload.array('file',3), function(req, res, next) {
+            res.send(req.files);
+    });    
+    
+    
+    /* add category kuldeep */
+     apiRouter.post('/add_categories', function(req, res){
+        var catge = new Category();
+            catge.category = req.body.category; 
+            catge.image = req.body.image; 
+            catge.icon = req.body.icon; 
+            console.log(catge);
+            catge.save(function(err,catge) {
+            if (err){
+                console.log(err.message)
+                res.send({"error" : 1,"message" : "Unable to add category"});
+            }else{
+            res.json({"error":0,"message":'New category added successfully','data':catge});
+        }
+        })
+         
+    });
+    
+    //cat by id
+        apiRouter.post('/category_id', function(req, res){
+        console.log(req.body.id);
+            Category.findById({_id : req.body.id}, function(err, post){
+                console.log(post);
+                    if (err) res.send(err);
+
+                    res.json({error : 0 , subcatlist : post});
+            });
+	});
+    
+    // category/editparmal
+        apiRouter.post('/category/update_category', function(req, res) {
+        Category.findById({'_id': req.body.id}, function(err, cate) {
+            
+            if (err){
+                res.send(err);
+            }else{
+            cate.category = req.body.category;               
+            cate.image = req.body.image; 
+            cate.icon = req.body.icon;
+            console.log(cate)
+            cate.save(function(err) {
+                if (err){
+                    console.log(err.message)
+                    res.send({"error" : 1,"message" : "Unable to edit category"});
+                }else{
+                res.json({"error":0,"message":'Category updated successfully','data':cate});
+                }
+                })
+            }
+            });
+        });
+        
+        
 };

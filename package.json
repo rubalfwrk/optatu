@@ -30,7 +30,7 @@
     "cors": "^2.7.1",
     "ejs": "^2.3.2",
     "email-verification": "^0.4.6",
-    "express": "^4.12.4",
+    "express": "^4.16.3",
     "express-session": "^1.11.3",
     "froala-editor": "^2.7.3",
     "http": "0.0.0",

@@ -37,6 +37,20 @@ subcategoriesModule.service('Subcategory', function($http) {
                 return err;
             });
         },
+        addsubcategory: function(newPost) {
+            return $http({
+                method: 'post',
+                url: '/api/add_subcategories_admin',
+                data: newPost
+            }).then(function(res) {
+                // return the new post
+                return res.data;
+            }).catch(function(err) {
+                console.error('Something went wrong adding the post!');
+                console.error(err);
+                return err;
+            });
+        },
         remove: function(newPost) {
             return $http({
                 method: 'post',
@@ -52,8 +66,6 @@ subcategoriesModule.service('Subcategory', function($http) {
             });
         },
         update: function(newPost) {
-
-
             return $http({
                 method: 'post',
                 url: '/api/subcategory/editparmal',
@@ -84,13 +96,35 @@ subcategoriesModule.service('Subcategory', function($http) {
                 return err;
             });
         },
-         singledata: function(parmal) {
-            console.log(parmal)
-            console.log('simer')
+         singledatasub: function(parmal) {
             return $http({
                 method: 'post',
                 url: '/api/subcategory/subcategorybyid',
                 data: parmal
+            }).then(function(res) {
+                // return the new post
+                console.log(res);
+                return res.data;
+                
+            }).catch(function(err) {
+                console.error('Something went wrong adding the post!');
+                console.error(err);
+                return err;
+            });
+        },
+        uploadimage: function(image) {
+            
+            var fd = new FormData();
+            //Take the first selected file
+            fd.append("file", image);
+           // console.log(fd);
+            return $http({
+                method: 'post',
+                url: '/api/uploadimage',
+                data: fd,
+                withCredentials: true,
+                headers: {'Content-Type': undefined},
+                transformRequest: angular.identity
             }).then(function(res) {
                 // return the new post
                 return res.data;

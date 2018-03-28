@@ -8,17 +8,31 @@ var Payment = require('../models/payment');
 var PaymentStatus = require('../models/paymentstatus');
 // Posts API
 
-
-
 module.exports = function(apiRouter,gateway){
-	
-//	
-	apiRouter.get('/payment/paymentlist', function(req, res){
-		Payment.find({}, function(err, posts){
-                    console.log(posts);
+		
+	apiRouter.get('/paymentlist', function(req, res){
+            
+//		Payment.find({}, function(err, posts){
+//                    console.log(posts);
+//			if (err) res.send(err);
+//			res.json({error : 0 , data : posts});
+//		});
+                
+                
+		Payment.aggregate([
+                    {
+                        $lookup:{  
+                            localField: "userid",   
+                            from: "users",         
+                            foreignField: "_id",  
+                            as: "user"  
+                        }
+                    }
+                ], function(err, post){
+                    console.log('rubal');
+                    console.log(post);
 			if (err) res.send(err);
-
-			res.json({error : 0 , data : posts});
+			res.json({error : 0 , data : post});
 		});
 	});
 
@@ -33,14 +47,13 @@ module.exports = function(apiRouter,gateway){
                console.log(req.body.planname);
                console.log(req.body.userid);
                console.log(req.body.paymentmethod);
-               
-               
+                              
                payments.transactionid = req.body.transactionid;
                payments.price = req.body.price;
-//               payments.epiormovid = req.body.epiormovid;
+//             payments.epiormovid = req.body.epiormovid;
                payments.planid = req.body.planid;
                payments.planname = req.body.planname;
-//               payments.epimovname = req.body.epimovname;
+//             payments.epimovname = req.body.epimovname;
                payments.userid = req.body.userid;
                payments.status = req.body.status;
                payments.paymentmethod = req.body.paymentmethod;
@@ -191,7 +204,7 @@ module.exports = function(apiRouter,gateway){
                     });
                 }
 		
-			
+		
                         
 		})
 		
@@ -208,18 +221,51 @@ module.exports = function(apiRouter,gateway){
             );
     
             stripe.charges.create({
-              amount: req.body.price,
+              amount: Math.round(req.body.price*100),
               currency: "eur",
               source: req.body.token
             }, function(err, charge) {
                 if(err) {
-                    res.send({"error" : 1, "msg" : err});
+                    res.send({"error" : 1, "message" : err});
                 }else{
                     res.json({"error":0,"message":'Payment Successful!'});
                 }
             });
-	
+            	
 	});
+        
+        apiRouter.post('/payment/reservations', function(req, res){
+            var payments = new Payment();
+            payments.transactionid = req.body.transactionid;  
+            payments.image = req.body.image;
+            payments.price = req.body.price;
+            payments.subcategoryid = req.body.subcategoryid;
+            payments.category = req.body.category;
+            payments.category_name = req.body.category_name;
+            payments.date_time = req.body.date_time;
+            payments.userid = req.body.userid;
+            payments.paymentmethod = req.body.paymentmethod;
+            payments.save(function(err, payments){
+                if (err){
+                    res.send({"error" : 1,"message" : "Error","data":err});
+                }else{
+                    res.send({"error" : 0,"message" : "Payment successfully saved."});
+                }
+            });
+        
+        });
+        
+        apiRouter.post('/payment/myreservations', function(req, res){
+            
+            Payment.find({userid:req.body.userid}, function(err, post){
+                if (err){
+                    res.send({"error" : 1,"message" : "Error"});
+                }else{
+                    res.send({"error" : 0,"data" : post});
+                }
+            });
+        
+        });
         
         apiRouter.post('/payment/stripedataretrieve', function(req, res){
             //console.log(req.body);

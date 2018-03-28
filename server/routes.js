@@ -17,6 +17,7 @@ var express = require('express'),
         Season = require('./models/season'),
         Likedislike = require('./models/likedislike'),
         Subcategory = require('./models/subcategory'),
+        Booking = require('./models/payment'),
         Staticpage = require('./models/staticpage'),
         Episode = require('./models/episode'),
         Serial = require('./models/serial'),
@@ -98,7 +99,7 @@ module.exports = function(app, passport) {
   
     require('./api/serials')(apiRouter,s3, randomString,userupload);
     require('./api/plans')(apiRouter);
-     require('./api/buynow')(apiRouter);
+    require('./api/buynow')(apiRouter);
     require('./api/teams')(apiRouter, passport, transporter, s3, randomString, userupload);
     require('./api/news')(apiRouter, passport, transporter, s3, randomString, userupload);
     require('./api/paymentstatus')(apiRouter);
@@ -106,7 +107,7 @@ module.exports = function(app, passport) {
     require('./api/downloads')(apiRouter);
     require('./api/rates')(apiRouter);
     require('./api/actors')(apiRouter);
-    require('./api/payments')(apiRouter,gateway);
+    //require('./api/payments')(apiRouter,gateway);
     require('./api/orders')(apiRouter);
     require('./api/seasons')(apiRouter,s3, randomString,userupload);
     require('./api/episodes')(apiRouter,s3, randomString,userupload);
@@ -114,7 +115,8 @@ module.exports = function(app, passport) {
     require('./api/coupons')(apiRouter,s3, randomString,userupload);
     require('./api/seats')(apiRouter,s3, randomString,userupload);
     require('./api/managercategories')(apiRouter,s3, randomString,userupload);
-    require('./api/subcategories')(apiRouter,s3, randomString,userupload);
+    require('./api/subcategories')(apiRouter,s3, randomString,userupload); 
+    require('./api/payments')(apiRouter,s3, randomString,userupload);
     require('./api/staticpages')(apiRouter,s3, randomString,userupload);
     require('./api/likedislikes')(apiRouter,s3, randomString,userupload);
     //require('./api/adminusers')(apiRouter, passport,transporter,s3,randomString);
@@ -426,10 +428,11 @@ module.exports = function(app, passport) {
         }
     });
     // admin route
-    router.get('/admin', function(req, res) {
+  router.get('/admin', function(req, res) {
+      console.log("admin login");
         res.render('admin/login');
     });
-
+    
     router.get('/admin/register', function(req, res) {
         res.render('admin/register');
     });
@@ -461,9 +464,9 @@ module.exports = function(app, passport) {
         });
     });
 
-    router.post('/login', passport.authenticate('local'), function(req, res) {
-        res.redirect('/admin/dashboard');
-    });
+//    router.post('/login', passport.authenticate('local'), function(req, res) {
+//        res.redirect('/admin/dashboard');
+//    });
 
     router.get('/auth/facebook', passport.authenticate('facebook', {scope: ['email']}));
     router.get('/auth/facebook/callback',
@@ -518,7 +521,7 @@ router.get('/allapi', function(req, res) {
 };
 
 function isAdmin(req, res, next) {
-    if (req.isAuthenticated() && req.user.email === 'rubal@gmail.com') {
+    if (req.isAuthenticated() && req.user.role === 'admin') {
         console.log('cool you are an admin, carry on your way');
         next();
     } else {

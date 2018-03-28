@@ -22,6 +22,20 @@ categoriesModule.service('Category', function($http) {
                 return err;
             });
         },
+        addcategory: function(newPost) {
+            return $http({
+                method: 'post',
+                url: '/api/add_categories',
+                data: newPost
+            }).then(function(res) {
+                // return the new post
+                return res.data;
+            }).catch(function(err) {
+                console.error('Something went wrong adding the post!');
+                console.error(err);
+                return err;
+            });
+        },
         remove: function(newPost) {
             return $http({
                 method: 'post',
@@ -37,11 +51,9 @@ categoriesModule.service('Category', function($http) {
             });
         },
         update: function(newPost) {
-
-
             return $http({
                 method: 'post',
-                url: '/api/category/editparmal',
+                url: '/api/category/update_category',
                 data: newPost
             }).then(function(res) {
                 // return the new post
@@ -52,6 +64,50 @@ categoriesModule.service('Category', function($http) {
                 return err;
             });
 
+        },
+        uploadimageiocn: function(image) {
+            
+            var fd = new FormData();
+            //Take the first selected file
+            fd.append("file", image);
+           // console.log(fd);
+            return $http({
+                method: 'post',
+                url: '/api/uploadimageicon',
+                data: fd,
+                withCredentials: true,
+                headers: {'Content-Type': undefined},
+                transformRequest: angular.identity
+            }).then(function(res) {
+                // return the new post
+                return res.data;
+            }).catch(function(err) {
+                console.error('Something went wrong adding the post!');
+                console.error(err);
+                return err;
+            });
+        },
+        uploadimage: function(image) {
+            
+            var fd = new FormData();
+            //Take the first selected file
+            fd.append("file", image);
+           // console.log(fd);
+            return $http({
+                method: 'post',
+                url: '/api/uploadimage',
+                data: fd,
+                withCredentials: true,
+                headers: {'Content-Type': undefined},
+                transformRequest: angular.identity
+            }).then(function(res) {
+                // return the new post
+                return res.data;
+            }).catch(function(err) {
+                console.error('Something went wrong adding the post!');
+                console.error(err);
+                return err;
+            });
         },
            sigledata: function(parmal) {
             console.log(parmal)
@@ -75,6 +131,20 @@ categoriesModule.service('Category', function($http) {
             return $http({
                 method: 'post',
                 url: '/api/category/categorybyid',
+                data: parmal
+            }).then(function(res) {
+                // return the new post
+                return res.data;
+            }).catch(function(err) {
+                console.error('Something went wrong adding the post!');
+                console.error(err);
+                return err;
+            });
+        },
+        singledatacat: function(parmal) {
+            return $http({
+                method: 'post',
+                url: '/api/category_id',
                 data: parmal
             }).then(function(res) {
                 // return the new post

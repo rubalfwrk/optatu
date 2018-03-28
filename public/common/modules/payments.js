@@ -5,7 +5,7 @@ paymentsModule.service('Payments', function($http) {
 
     return {
         all: function() {
-            return $http.get('/api/payment/paymentlist').then(function(postList) {
+            return $http.get('/api/paymentlist').then(function(postList) {
                 return postList.data;
             });
         },

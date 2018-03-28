@@ -1,12 +1,11 @@
-<div class="content-wrapper">
-    <!-- Content Header (Page header) -->
+
     <section class="content-header">
         <h1>
             Category
             <small>Edit Category</small>
         </h1>
         <ol class="breadcrumb">
-            <li><a href="/admin/dashboard#/userList"><i class="fa fa-dashboard"></i> Category</a></li>
+            <li><a href="/admin/dashboard#/categoryList"><i class="fa fa-dashboard"></i> Category</a></li>
             <li class="active">Edit Category</li>
         </ol>
     </section>
@@ -18,28 +17,47 @@
                     <div class="box-header with-border">
                         <h3 class="box-title">Edit Category</h3>
                     </div>
-                        <div class="form-group">
+                    <div class="form-group">
                         <div class="alert alert-success" ng-show="message">
                             <strong ng-bind="message" ></strong> 
                         </div>
                     </div>
+                    
+                    <!--// form -->
+                    
+                    <form role="form" ng-submit="editCategory(cate)">
                         <div class="box-body">
-                            <div class='col-lg-8'>
-                                <div class='form-group'>
-                                     <label for="exampleInputPassword1">Category</label>
-                                    <input type='text' placeholder='Title' ng-model='post.category' required="" name='title' class='form-control'>
-                                </div>
+                            
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Category</label>
+                                <input type="text" class="form-control" name='firstname' ng-model='cate.category' required="" placeholder="Sub Category">
                             </div>
-                           
-<!--                            <div class="form-group">
-                                <input type='hidden' placeholder='blog' ng-model='post.id' name='id' class='form-control'>
-                           </div>-->
-                            <div class="col-lg-8">
-                                <div class='btn btn-success pull-left update' ng-click='editCategory(post)'>Update Category</div>                               
+                            
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Icon</label>                  
+                                <img  ng-src="{{cate.icon}}" id="photo-id"  width="150px;"/>
+                <input type="file" name="file" onchange="angular.element(this).scope().fileNameChangedicon(this)" id="photo-upload"/>
+                                 <p ng-show="loadingicon">...UPLOADING...</p>
                             </div>
+                            
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Image</label>                  
+                                <img  ng-src="{{cate.image}}" id="photo-id"  width="150px;"/>
+                <input type="file" name="file" onchange="angular.element(this).scope().fileNameChanged(this)" id="photo-upload"/>
+                                 <p ng-show="loading">...UPLOADING...</p>
+                            </div>
+                            
+                            
+                            
                         </div>
+                        <!-- /.box-body -->
+                        <div class="box-footer">
+                            <input type="submit" name="submit" value="Update Category" class='btn btn-primary'>                   
+                        </div>
+                    </form>
+                    
+                    <!--//form end -->
                 </div>
             </div>
         </div>
     </section>
-</div>
